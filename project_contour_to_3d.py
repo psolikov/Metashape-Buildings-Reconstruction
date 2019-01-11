@@ -23,7 +23,9 @@ def get_contour(location, filename):
     labels[markers_bg == 255] = 2
     out = cv2.watershed(img, labels)
     contour_image = np.zeros_like(out)
+    contour_image = contour_image.reshape((contour_image.shape[0], contour_image.shape[1] , 1))
     contour_image[out == -1] = 255
+    contour_image = contour_image.astype('uint8')
     im2, contours, hierarchy = cv2.findContours(contour_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     return contours[0]
 
