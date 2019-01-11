@@ -79,6 +79,23 @@ if __name__ == "__main__":
                     p.append(projected)
         return p
 
+    # Export 2d contour from segmented image with a given contour from get_contour
+    def get_contour_3d(camera_index, contour):
+        p = []
+        ps_cam = selected_cameras[camera_index]
+        point_cloud = chunk.dense_cloud
+        for pixel_list in contour:
+            for pixel in pixel_list:
+                pixel_vector = ps.Vector([pixel[0], pixel[1]])
+                destination_camera = ps_cam.sensor.calibration.unproject(pixel_vector)  # 3d point on ray (camera space)
+                destination_chunk = ps_cam.transform.mulp(destination_camera)  # 3d point on ray (chunk space)
+                target_point = point_cloud.pickPoint(ps_cam.center, destination_chunk)  # 3d point (chunk space)
+                if target_point is not None:
+                    world = chunk.transform.matrix.mulp(target_point)  # get geocentric coords
+                    projected = chunk.shapes.crs.project(world) #get geographic coords
+                    p.append(projected)
+        return p
+
     # Create new shape and place it on point cloud
     def create_new_shape(label, vertices):
         shapes = chunk.shapes
