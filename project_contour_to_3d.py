@@ -13,6 +13,7 @@ from skimage.color import label2rgb
 # Function to get contour of a building
 # It is required to have 3 files in provided location: image with the building, image with background markers, image with foreground markers
 # format: 'name.JPG', 'name_bg.JPG', 'name_fg.JPG'
+# example of args: location = '//psdevscns/ps_storage/solikov/Segmentation/Chunk/', filename = '2018_08_15_Naklon-Left_g201b20265_f004_0629'
 def get_contour(location, filename):
     JPG = '.JPG'
     img = cv2.imread(location + filename + JPG)
