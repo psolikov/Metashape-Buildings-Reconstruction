@@ -23,12 +23,22 @@ def get_contour(location, filename):
     labels[markers == 255] = 1
     labels[markers_bg == 255] = 2
     out = cv2.watershed(img, labels)
-    contour_image = np.zeros_like(out)
-    contour_image = contour_image.reshape((contour_image.shape[0], contour_image.shape[1] , 1))
-    contour_image[out == -1] = 255
-    contour_image = contour_image.astype('uint8')
-    im2, contours, hierarchy = cv2.findContours(contour_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    return contours[0]
+    out_cp = out.copy()
+    out_cp = out_cp.astype('uint8')
+    out_cp[out_cp == 2] = 255
+    out_cp[out_cp == -1] = 255
+    out_cp[out_cp == 1] = 0
+    # contour_image = np.zeros_like(out)
+    # contour_image = contour_image.reshape((contour_image.shape[0], contour_image.shape[1] , 1))
+    # contour_image[out == -1] = 255
+    # contour_image = contour_image.astype('uint8')
+    im2, contours, hierarchy = cv2.findContours(out_cp, cv2.RETR_LIST , cv2.CHAIN_APPROX_NONE)
+    cnt = None
+    if (cv2.contourArea(contours[0]) < cv2.contourArea(contours[1])):
+        cnt = contours[0]
+    else:
+        cnt = contours[1]
+    return cnt
 
 if __name__ == "__main__":
     # Loading names of cameras containing school that I picked manuallly
