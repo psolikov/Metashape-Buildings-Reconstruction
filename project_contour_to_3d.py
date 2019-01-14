@@ -40,6 +40,11 @@ def get_contour(location, filename):
         cnt = contours[1]
     return cnt
 
+def approximate_contour(cnt):
+    epsilon = 0.001*cv2.arcLength(cnt,True)
+    approx = cv2.approxPolyDP(cnt,epsilon,True)
+    return approx
+
 if __name__ == "__main__":
     # Loading names of cameras containing school that I picked manuallly
     file = open('//psdevscns/ps_storage/solikov/Segmentation/Chunk/selected_5')
@@ -114,3 +119,13 @@ if __name__ == "__main__":
         sh.label = label
         sh.vertices = vertices
         return sh
+
+    def set_height_to_min(contour_3d):
+        min = contour_3d[0].z
+        cnt_cp = contour_3d.copy()
+        for i in contour_3d:
+            if (i.z < min):
+                min = i.z
+        for i in cnt_cp:
+            i.z = min
+        return cnt_cp        
