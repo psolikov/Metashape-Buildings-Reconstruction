@@ -41,7 +41,7 @@ def get_contour(location, filename):
     return cnt
 
 def approximate_contour(cnt):
-    epsilon = 0.001*cv2.arcLength(cnt,True)
+    epsilon = 0.0002*cv2.arcLength(cnt,True)
     approx = cv2.approxPolyDP(cnt,epsilon,True)
     return approx
 
@@ -129,3 +129,19 @@ if __name__ == "__main__":
         for i in cnt_cp:
             i.z = min
         return cnt_cp        
+
+    def process_files(id):
+        location = '//psdevscns/ps_storage/solikov/Segmentation/Chunk/'
+        filename = selected_cameras[id].label[:len(selected_cameras[id].label) - 4]
+        cnt = get_contour(location, filename)
+        cnt_approx = approximate_contour(cnt)
+        print('Len approx: ' + str(len(cnt_approx)))
+        cnt_3d = get_contour_3d(id, cnt_approx)
+        cnt_3d = set_height_to_min(cnt_3d)
+        sh = create_new_shape('probe', cnt_3d)
+        return sh
+
+    def delete_cnt():
+        shapes = chunk.shapes
+        p = shapes.shapes[1]
+        shapes.remove(p)
