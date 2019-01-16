@@ -145,3 +145,7 @@ if __name__ == "__main__":
         shapes = chunk.shapes
         p = shapes.shapes[1]
         shapes.remove(p)
+
+    def renderDepth(cam):
+        model = chunk.model
+        return model.renderDepth(cam.transform, cam.sensor.calibration)
