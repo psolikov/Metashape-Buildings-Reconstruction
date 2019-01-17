@@ -1,5 +1,5 @@
 import PhotoScan as ps
-import json
+import codecs, json
 import numpy as np
 import cv2
 from skimage.transform import AffineTransform, warp
@@ -44,6 +44,17 @@ def approximate_contour(cnt):
     epsilon = 0.0002*cv2.arcLength(cnt,True)
     approx = cv2.approxPolyDP(cnt,epsilon,True)
     return approx
+
+def serrialize_cnt(cnt, path):
+    b = cnt.tolist()
+    with open(path, 'w') as outfile:
+        json.dump(b, outfile, separators=(',', ':'), indent=4)
+
+def deserrialize_cnt(path):
+    obj_text = codecs.open(path, 'r', encoding='utf-8').read()
+    b_new = json.loads(obj_text)
+    a_new = np.array(b_new)
+    return a_new
 
 if __name__ == "__main__":
     # Loading names of cameras containing school that I picked manuallly
@@ -149,3 +160,13 @@ if __name__ == "__main__":
     def renderDepth(cam):
         model = chunk.model
         return model.renderDepth(cam.transform, cam.sensor.calibration)
+
+
+    def export_selected_cameras_to_json():
+        s_list = []
+        for c in chunk.cameras:
+            if (c.selected):
+                s_list.append(c.label)
+        path_to_selected_cameras = '//psdevscns/ps_storage/solikov/Segmentation/Chunk/export_selected_cameras_to_json.txt'
+        with open(path_to_selected_cameras, 'w') as outfile:
+            json.dump(s_list, outfile)
