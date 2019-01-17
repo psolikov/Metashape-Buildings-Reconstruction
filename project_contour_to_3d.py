@@ -1,13 +1,12 @@
 import PhotoScan as ps
 import codecs, json
-import numpy as np
-import cv2
+# import numpy as np
 
 def deserrialize_cnt(path):
     obj_text = codecs.open(path, 'r', encoding='utf-8').read()
     b_new = json.loads(obj_text)
-    a_new = np.array(b_new)
-    return a_new
+    # a_new = np.array(b_new)
+    return b_new
 
 if __name__ == "__main__":
     # Loading names of cameras containing school that I picked manuallly
