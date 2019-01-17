@@ -2,53 +2,6 @@ import PhotoScan as ps
 import codecs, json
 import numpy as np
 import cv2
-from skimage.transform import AffineTransform, warp
-from skimage.color import label2rgb
-
-# Run this on //psdevscns/ps_storage/solikov/kazan_part/P084_1710_Kazan_III-IV_E-8
-
-# path to local json: C:/Users/p.solikov/Work/FromSegmentation/Semi-Automatic/selected_5
-# path to local photos folder: C:/Users/p.solikov/Work/FromSegmentation/Semi-Automatic/
-
-# Function to get contour of a building
-# It is required to have 3 files in provided location: image with the building, image with background markers, image with foreground markers
-# format: 'name.JPG', 'name_bg.JPG', 'name_fg.JPG'
-# example of args: location = '//psdevscns/ps_storage/solikov/Segmentation/Chunk/', filename = '2018_08_15_Naklon-Left_g201b20265_f004_0629'
-def get_contour(location, filename):
-    JPG = '.JPG'
-    img = cv2.imread(location + filename + JPG)
-    markers = cv2.imread(location + filename + '_fg' + JPG, 0)
-    markers_bg = cv2.imread(location + filename + '_bg' + JPG, 0)
-    labels = np.zeros_like(markers, dtype=np.int32)
-    labels[markers == 255] = 1
-    labels[markers_bg == 255] = 2
-    out = cv2.watershed(img, labels)
-    out_cp = out.copy()
-    out_cp = out_cp.astype('uint8')
-    out_cp[out_cp == 2] = 255
-    out_cp[out_cp == -1] = 255
-    out_cp[out_cp == 1] = 0
-    # contour_image = np.zeros_like(out)
-    # contour_image = contour_image.reshape((contour_image.shape[0], contour_image.shape[1] , 1))
-    # contour_image[out == -1] = 255
-    # contour_image = contour_image.astype('uint8')
-    im2, contours, hierarchy = cv2.findContours(out_cp, cv2.RETR_LIST , cv2.CHAIN_APPROX_NONE)
-    cnt = None
-    if (cv2.contourArea(contours[0]) < cv2.contourArea(contours[1])):
-        cnt = contours[0]
-    else:
-        cnt = contours[1]
-    return cnt
-
-def approximate_contour(cnt):
-    epsilon = 0.0002*cv2.arcLength(cnt,True)
-    approx = cv2.approxPolyDP(cnt,epsilon,True)
-    return approx
-
-def serrialize_cnt(cnt, path):
-    b = cnt.tolist()
-    with open(path, 'w') as outfile:
-        json.dump(b, outfile, separators=(',', ':'), indent=4)
 
 def deserrialize_cnt(path):
     obj_text = codecs.open(path, 'r', encoding='utf-8').read()
@@ -64,20 +17,22 @@ if __name__ == "__main__":
     chunk = doc.chunk
     cameras = chunk.cameras
 
+    print('Loading cameras...')
+
     selected_cameras = []
     for i in cameras:
         if (i.label in selected):
+            f = location + i.label[:len(i.label) - 4] + '.JPG'
+            print(f)
             selected_cameras.append(i)
 
-    print('Loading contours...')
-
     # Loading pictures of segmented contours
-    selected_contours = []
-    location = '//psdevscns/ps_storage/solikov/Segmentation/Chunk/'
-    for i in selected_cameras:
-        f = location + i.label[:len(i.label) - 4] + '_contour.JPG'
-        print(f)
-        selected_contours.append(cv2.imread(f, -1))
+    # selected_contours = []
+    # location = '//psdevscns/ps_storage/solikov/Segmentation/Chunk/'
+    # for i in selected_cameras:
+    #     f = location + i.label[:len(i.label) - 4] + '_contour.JPG'
+    #     print(f)
+    #     selected_contours.append(cv2.imread(f, -1))
 
     print('Done. Call \'print_available_cameras()\' to get list of cameras, ' +
         '\'find_contour_3d()\' to generate vertices for new shape and '+
@@ -86,25 +41,6 @@ if __name__ == "__main__":
     def print_available_cameras():
         for i in range(len(selected_cameras)):
             print('id: ' + str(i) + ', name: ' + '\'' + selected_cameras[i].label + '\'')
-
-    # Export 2d contour from segmented image
-    def find_contour_3d(camera_index):
-        p = []
-        ps_cam = selected_cameras[camera_index]
-        im2, contours, hierarchy = cv2.findContours(selected_contours[camera_index], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        contour_2d = contours[0]
-        point_cloud = chunk.dense_cloud
-        for pixel_list in contour_2d:
-            for pixel in pixel_list:
-                pixel_vector = ps.Vector([pixel[0], pixel[1]])
-                destination_camera = ps_cam.sensor.calibration.unproject(pixel_vector)  # 3d point on ray (camera space)
-                destination_chunk = ps_cam.transform.mulp(destination_camera)  # 3d point on ray (chunk space)
-                target_point = point_cloud.pickPoint(ps_cam.center, destination_chunk)  # 3d point (chunk space)
-                if target_point is not None:
-                    world = chunk.transform.matrix.mulp(target_point)  # get geocentric coords
-                    projected = chunk.shapes.crs.project(world) #get geographic coords
-                    p.append(projected)
-        return p
 
     # Export 2d contour from segmented image with a given contour from get_contour
     def get_contour_3d(camera_index, contour):
@@ -160,7 +96,6 @@ if __name__ == "__main__":
     def renderDepth(cam):
         model = chunk.model
         return model.renderDepth(cam.transform, cam.sensor.calibration)
-
 
     def export_selected_cameras_to_json():
         s_list = []
