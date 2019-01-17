@@ -11,7 +11,12 @@ import cv2
 # It is required to have 3 files in provided location: image with the building, image with background markers, image with foreground markers
 # format: 'name.JPG', 'name_bg.JPG', 'name_fg.JPG'
 # example of args: location = '//psdevscns/ps_storage/solikov/Segmentation/Chunk/', filename = '2018_08_15_Naklon-Left_g201b20265_f004_0629'
-def get_contour(location, filename):
+
+# Home folder: '\\psdevscns\ps_storage\solikov\kazan_part2\Data'
+def get_default_folder():
+    return '//psdevscns/ps_storage/solikov/kazan_part2/Data/'
+
+def get_contour(location = '//psdevscns/ps_storage/solikov/kazan_part2/Data/', filename):
     JPG = '.JPG'
     img = cv2.imread(location + filename + JPG)
     markers = cv2.imread(location + filename + '_fg' + JPG, 0)
